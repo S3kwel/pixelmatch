@@ -5,39 +5,18 @@
 
 const PNG = require('pngjs').PNG;
 const fs = require('fs');
-const match = require('../.');
+const match = require('index.js')
 
 if (process.argv.length < 4) {
     console.log('Usage: pixelmatch image1.png image2.png [diff.png] [threshold=0.005] [includeAA=false]');
     process.exit(64);
 }
 
-const [,, img1Path, img2Path, diffPath, threshold, includeAA] = process.argv;
-const options = {
-    threshold: +threshold,
-    includeAA: includeAA !== undefined && includeAA !== 'false'
-};
+const [,, imgPath,outputPath] = process.argv;
 
-const img1 = PNG.sync.read(fs.readFileSync(img1Path));
-const img2 = PNG.sync.read(fs.readFileSync(img2Path));
+const img = PNG.sync.read(fs.readFileSync(imgPath));
+//const img.width; img.height; 
 
-const {width, height} = img1;
+const edges = outputPath ? new PNG({width, height}) : null;
 
-if (img2.width !== width || img2.height !== height) {
-    console.log(`Image dimensions do not match: ${width}x${height} vs ${img2.width}x${img2.height}`);
-    process.exit(65);
-}
-
-const diff = diffPath ? new PNG({width, height}) : null;
-
-console.time('matched in');
-const diffs = match(img1.data, img2.data, diff ? diff.data : null, width, height, options);
-console.timeEnd('matched in');
-
-console.log(`different pixels: ${diffs}`);
-console.log(`error: ${Math.round(100 * 100 * diffs / (width * height)) / 100}%`);
-
-if (diff) {
-    fs.writeFileSync(diffPath, PNG.sync.write(diff));
-}
-process.exit(diffs ? 66 : 0);
+process.exit(0);
