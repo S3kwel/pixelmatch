@@ -10,6 +10,7 @@
     "bin/pixelmatch"
   ],
   "dependencies": {
+    "jsts": "^2.3.0",
     "pngjs": "^4.0.1"
   },
   "devDependencies": {
