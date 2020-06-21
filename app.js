@@ -26,16 +26,15 @@ When examining the pixels themselves, this approach will force us to have to app
 class ImgGrid {
     constructor(img, outputImg = false) {
         this.img = img != null && this.isPixelData(img.data) ? img.data : null;
-        this.outPutImage = outputImg ? new PNG({ w, h }).data : null;
+        this.imgFile = img; 
+        let w = img.width; 
+        let h = img.height; 
+        this.outputName = outputImg; 
+        this.outPutImage = outputImg ? img.data : null;
 
         this.imgWidth = this.img ? img.width : 0;
         this.imgHeight = this.img ? img.height : 0;
         this.points = this.generatePoints();
-
-        //console.log("CENTER POINT IS: "); 
-        let point = this.getPoint(0, 0);
-        console.log(point.pixelNumber); 
-        
     }
 
 
@@ -44,12 +43,8 @@ class ImgGrid {
         return ArrayBuffer.isView(arr) && arr.constructor.BYTES_PER_ELEMENT === 1;
     }
 
-    //Points start from 0, top down, left right.  
     generatePoints() {
         let returnArray = []; 
-        
-        
-
         for (let x = 0; x < this.imgWidth; x++) {
             for (let y = 0; y < this.imgHeight; y++) {
                if (y == this.imgHeight-1 && typeof this.maxY == 'undefined') { 
@@ -76,12 +71,43 @@ class ImgGrid {
     getPoint(x, y) {
         for (let point of this.points) {
             if (point.pX == x && point.pY == y) {
-                return point; 
-            } 
-        }
-
-      
+                return point;
+            }
+        }    
     }
+
+    colorAtPoint(x, y) {
+        let p = new Point(x, y, this.imgWidth, this.imgHeight, this.maxX, this.maxY); 
+        let pixelIndex = p.pixelNumber * 4; 
+
+        let r = this.img[pixelIndex + 0];
+        let g = this.img[pixelIndex + 1];
+        let b = this.img[pixelIndex + 2];
+        let a = this.img[pixelIndex + 3]; 
+
+        console.log(this.outPutImage);
+        this.outPutImage[pixelIndex + 0] = r;
+        this.outPutImage[pixelIndex + 1] = g;
+        this.outPutImage[pixelIndex + 2] = b;
+        this.outPutImage[pixelIndex + 3] = a;
+
+        return { r: r, g: g, b: b, a: a }; 
+    }
+
+    drawPixel(pos, c) {
+        this.outPutImage[pos + 0] = c.r;
+        this.outPutImage[pos + 1] = c.g;
+        this.outPutImage[pos + 2] = c.b;
+        this.outPutImage[pos + 3] = c.a;
+    }
+
+    saveOutput() {
+        this.imgFile.data = this.outPutImage; 
+        let buffer = PNG.sync.write(this.imgFile);
+        fs.writeFileSync(this.outputName+'.png', buffer);
+
+    }
+
 }
 
 
@@ -123,6 +149,7 @@ class Point{
         //Closest pixel (preferring down-left direction) to the point.  
         this.pX = Math.floor(this.x);
         this.pY = Math.floor(this.y); 
+        this.pixelIndex = (y * width + x) * 4;
     }
 
     get pixelNumber() {
@@ -135,6 +162,7 @@ class Point{
         }
         return px;
     }
+
 }
 
 
@@ -170,39 +198,9 @@ function hasManySiblings(img, x1, y1, width, height) {
 }
 
 
-function drawPixel(output, pos, c) {
-    output[pos + 0] = c.r;
-    output[pos + 1] = c.g;
-    output[pos + 2] = c.b;
-    output[pos + 3] = 255;
-    return output; 
-}
 
 
 //Read the image, get its width and height.  
 const img = PNG.sync.read(fs.readFileSync(imgPath));
 
-let g = new ImgGrid(img); 
-//let p = new Point(null,4);
-
-//Get the transparency arrays and prep the output image, if the user asked for it.  
-
-/*
-if (outputImage) {
-    let output = getTransparency(img.data, outputImage.data, img.width, img.height);
-
-    if (output.out) {
-        img.data = output.out;
-        let buffer = PNG.sync.write(img);
-        fs.writeFileSync('out.png', buffer);
-    }
-
-}
-
-else {
-    let output = getTransparency(img.data, false, img.width, img.height);
-    console.log(output); 
-}
-*/
-
-
+let g = new ImgGrid(img,'test');  
