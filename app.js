@@ -33,9 +33,9 @@ class ImgGrid {
         this.points = this.generatePoints();
 
         //console.log("CENTER POINT IS: "); 
-        this.getPoint(0, 0)
-        //console.log(this.getPoint(0, 0)); 
-        this.getPixelAt(0, 0); 
+        let point = this.getPoint(0, 0);
+        console.log(point.pixelNumber); 
+        
     }
 
 
@@ -75,26 +75,13 @@ class ImgGrid {
 
     getPoint(x, y) {
         for (let point of this.points) {
-            if (point.x == x && point.y == y)
+            if (point.pX == x && point.pY == y) {
                 return point; 
+            } 
         }
+
+      
     }
-
-    getPixelAt(x,y) {
-       // console.log(x, y); 
-        let point = new Point(x, y, this.imgWidth, this.imgHeight, this.maxX, this.maxY); 
-
-        //console.log(point.x, point.y);
-        //let baseHeight = 1 * this.imgWidth; 
-
-
-       // console.log((point._x * (this.imgWidth * (x+1))) - (maxX-x)   ); 
-    }
-
-       
-
-   
-
 }
 
 
@@ -120,38 +107,33 @@ class Point{
         let oldRight = this.maxX; 
         let oldBottom = this.maxY;
 
-        //New left and right get pushed over by half of the old with.  
-        let newLeft = oldLeft + this.maxX / 2;
-        let newRight = oldRight + this.maxX / 2;
-        let newTop = oldTop + this.maxY / 2;  //New top should still be zero.
-        let newBottom = oldBottom; //New Bottom should still be MaxY.
-
-        //console.log(newLeft,newRight,newTop,newBottom); 
+        let newLeft = -(this.maxX / 2);
+        let newRight = this.maxX / 2;
+        let newTop = this.maxY / 2; 
+        let newBottom = -(this.maxY / 2);
 
         this.x = newLeft + ((x - oldLeft) / (oldRight - oldLeft)) * (newRight - newLeft);  
         this.y = newTop + ((y - oldTop) / (oldBottom - oldTop)) * (newBottom - newTop); 
-   
-        console.log(this.x)
-        console.log(this.y);
-
-        process.exit(); 
 
 
-
+        //To preserve pixel-order coordinates.  
         this._x = x;    
         this._y = y;
+
+        //Closest pixel (preferring down-left direction) to the point.  
+        this.pX = Math.floor(this.x);
+        this.pY = Math.floor(this.y); 
     }
-  
-    //NOTE:  Will need to inherit img from grid.  
-    //NOTE:  Will need to inherit witdth and height from grid.  
-    color() {  
-        let r = this.img[this.pos + 0];
-        let g = this.img[this.pos + 1];
-        let b = this.img[this.pos + 2];
-        let a = this.img[this.pos + 3];
-        return ({
-            'r': r, 'g': g, 'b': b, 'a': a
-        });
+
+    get pixelNumber() {
+        let px = -1;
+        for (let i = 0; i <= this._x; i++) {
+            px++;
+            for (let ii = 0; ii <= this._y; ii++) {
+                px++;
+            }
+        }
+        return px;
     }
 }
 
